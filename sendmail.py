@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """ Send an email contained in a file. """
 import tmparms, os, sys, argparse, smtplib
 from email.mime.text import MIMEText
@@ -7,11 +7,11 @@ from email.mime.multipart import MIMEMultipart
 import tmglobals
 globals = tmglobals.tmglobals()
 
-import collections
+from collections.abc import Iterable
 def flatten(l):
     ### From http://stackoverflow.com/questions/2158395/flatten-an-irregular-list-of-lists-in-python
     for el in l:
-        if isinstance(el, collections.Iterable) and not isinstance(el, basestring):
+        if isinstance(el, Iterable) and not isinstance(el, str):
             for sub in flatten(el):
                 yield sub
         else:

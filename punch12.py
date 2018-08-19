@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import tmparms, os, sys
 from datetime import date, datetime
 from tmutil import showclubswithvalues, showclubswithoutvalues
@@ -15,7 +15,7 @@ def inform(*args, **kwargs):
     file = kwargs.get('file', sys.stderr)
     
     if parms.quiet < suppress:
-        print >> file, ' '.join(args)
+        print(' '.join(args), file=file)
         
 class myclub:
     """ Just enough club info to sort the list nicely """
@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     # Handle parameters
     parms = tmparms.tmparms()
-    parms.add_argument('--quiet', '-q', action='count')
+    parms.add_argument('--quiet', '-q', action='count', default=0)
     parms.parser.add_argument("--fromend", dest='fromend', type=int, default=12)
     parms.parser.add_argument("--toend", dest='toend', type=int, default=2)
     parms.parser.add_argument("--outfile", dest='outfile', type=argparse.FileType('w'), default='punch.html')

@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """ Ingest the roster into the database.  Completely replaces the
     roster table every time. """
 
 # This is a standard skeleton to use in creating a new program in the TMSTATS suite.
-from __future__ import print_function
+
 
 import dbconn, tmutil, sys, os, xlrd, re, csv, codecs
 from datetime import datetime, date
@@ -33,37 +33,6 @@ def normalizefieldnames(fields):
     return fieldnames
     
         
-class UTF8Recoder:
-    """
-    Iterator that reads an encoded stream and reencodes the input to UTF-8
-    """
-    def __init__(self, f, encoding):
-        self.reader = codecs.getreader(encoding)(f)
-
-    def __iter__(self):
-        return self
-
-    def next(self):
-        return self.reader.next().encode("utf-8")
-
-
-
-class UnicodeReader:
-    """
-    A CSV reader which will iterate over lines in the CSV file "f",
-    which is encoded in the given encoding.
-    """
-
-    def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
-        f = UTF8Recoder(f, encoding)
-        self.reader = csv.reader(f, dialect=dialect, **kwds)
-
-    def next(self):
-        row = self.reader.next()
-        return [unicode(s, "utf-8") for s in row]
-
-    def __iter__(self):
-        return self
 
 if __name__ == "__main__":
  
@@ -98,31 +67,34 @@ if __name__ == "__main__":
         ilastname = fieldnames.index('lastname')
     
         # And get the values
-        for row in xrange(1, sheet.nrows):
+        for row in range(1, sheet.nrows):
             values.append(sheet.row_values(row))
             # And add the fullname
             values[-1].append(('%s, %s %s' % (row[ilastname],row[ifirstname],row[imiddle])).strip())
             
     
     elif filetype in ['.csv']:
-        csvfile = open(parms.roster, 'rbU')
-        
-        # The file might be in UTF-8 or Latin-1 - the only way to find out is to
-        #    read the whole thing as UTF-8 and see
+        # We have to be able to handle files in UTF-8 or Latin-1, so we
+        #    try to read the whole thing as UTF-8 and if it fails, use
+        #    Latin-1.  *sigh*
         
         encoding = 'utf-8'
-        tester = UTF8Recoder(csvfile, encoding=encoding)
+        csvfile = open(parms.roster, 'r', encoding=encoding)
         try:
-            while tester.next():
-                pass
+            line = next(csvfile)
+            while line:
+               line = next(csvfile)
         except StopIteration:
             pass
-        except UnicodeDecodeError:
+        except UnicodeDecodeError as e:
+            # Close and reopen in latin-1
+            csvfile.close()
             encoding = 'latin-1'
+            csvfile = open(parms.roster, 'r', encoding=encoding)
             
         print('Roster encoding seems to be %s' % encoding)
         csvfile.seek(0)  # Back to the beginning of the file
-        reader = UnicodeReader(csvfile, encoding=encoding)
+        reader = csv.reader(csvfile)
 
         # Skip any prefatory lines in the file until we get to one
         #   with 'District', 'Division', and 'Area' in it.  That will
