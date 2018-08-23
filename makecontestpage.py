@@ -39,6 +39,9 @@ class Division:
     def arealist(self):
         return sorted(self.areas)
         
+
+
+
 class Event:
     ptemplate = '%Y-%m-%d %H:%M:%S'
     

@@ -1,0 +1,22 @@
+tmglobals was incepted to solve the problem of passing around lots of
+parameters
+
+
+parms and globals are very closely related -- they both exist because of code
+evolution
+
+setup expects a parms instance
+
+tmparms lines 37 - 43 : standard arguments
+    -improvement: setup standard arguments (verbose and quiet)
+
+Priority when resolving parameters:
+1. The name of the .yml file 
+2. Values from the yml file 
+3. Non-false values from the command line or defaults in the parser (e.g.
+parms.add_argument())
+    3.1 For values not in the .yml file, we use the parse value (from the
+    command line if specified, or default if not specified) 
+        
+
+

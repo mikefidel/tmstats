@@ -28,7 +28,18 @@ def getinfo(curs, table, post_list):
         
     return (posts, venue_numbers)  
         
+#Added from 'makecontestpage.py'        
+class Division:
+    def __init__(self, name):
+        self.areas = set()
+        self.name = name
         
+    def addArea(self, area):
+        self.areas.add(self.name + area)
+        
+    def arealist(self):
+        return sorted(self.areas)
+
 class Event:
     ptemplate = '%Y-%m-%d %H:%M:%S'
     

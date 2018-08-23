@@ -102,6 +102,10 @@ def getTMYearFromDB(curs):
     return curs.fetchone()[0]
 
 def getMonthStart(month, curs, tmyear=None):
+    """
+    Get the starting day of month for the specified year OR the current
+    toastmasters year
+    """
     if not tmyear:
         tmyear = getTMYearFromDB(curs)
     if month <= 6:
