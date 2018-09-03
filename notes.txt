@@ -1,0 +1,10 @@
+9-3
+==================================================
+-In tumutil, the parseWPconfig function accepts a file as an argument.
+In one implementation of this function, a file is passed via (open('asdf','r')), 
+which leaves the file open. I think that all file handling should be done via
+context managers (e.g. with open(filename) as f: do stuff;)
+
+-'globals' is a Python keyword. All usages of 'globals' should be replaced with 'globals_'.
+The trailing underscore is a Python convention for re-using a reserved keyword but not 
+overloading it.
