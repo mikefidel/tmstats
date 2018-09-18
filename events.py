@@ -11,16 +11,9 @@ class Event:
     @staticmethod
     def connect_to_db():
         conn = dbconn.dbconn(config['DB_HOST'], config['DB_USER'], config['DB_PASSWORD'], config['DB_NAME'])
-        curs = conn.cursor()
-        prefix = config['table_prefix']
-        poststable = prefix + 'posts'
-        optionstable = prefix + 'options'
         return curs
 
-
-class Training(Event):
-
-    def __init__(self, name, title, contents, venues, parms):
+    def __init__(self, contents, venues, parms):
         for item in contents:
             ours = item.replace("_","")
             self.__dict__[ours] = contents[item]
@@ -28,14 +21,19 @@ class Training(Event):
             v = int(self.EventVenueID)
             for item in venues[v]:
                 ours = item.replace("_","")
-                self.__dict__[ours] = venues[v][item]
+                self.__dict__[ours] = venus[v][item]
+                  
         self.start = datetime.strptime(self.EventStartDate, self.ptemplate)
         self.end = datetime.strptime(self.EventEndDate, self.ptemplate)
         self.include = (self.start >= parms.start) and (self.end <= parms.end)
-        self.showreg = parms.showpast or (self.end > parms.now)
-        self.name = name
-        self.title = title
+        self.showreg = parms.showpast or (self.start > parms.now)
 
+class Training(Event):
+    def __init__(self, name, title, *args, **kwargs):
+        super().__init__(**kwargs):
+            self.name = name
+            self.title = title
+        
             
     def __repr__(self):
         self.date = self.start.strftime('%A, %B %d').replace(' 0',' ')
@@ -60,20 +58,9 @@ def output(what, outfile):
 
 
 class Contest(Event):
-    def __init__(self, contents, area, venues, parms):
-        for item in contents:
-            ours = item.replace("_","")
-            self.__dict__[ours] = contents[item]
-        if '_EventVenueID' in contents:
-            v = int(self.EventVenueID)
-            for item in venues[v]:
-                ours = item.replace("_","")
-                self.__dict__[ours] = venues[v][item]
+    def __init__(self, area, **kwargs):
+        super().__init__(**kwargs)
         self.area = area
-        self.start = datetime.strptime(self.EventStartDate, self.ptemplate)
-        self.end = datetime.strptime(self.EventEndDate, self.ptemplate)
-        self.include = (self.start >= parms.start) and (self.end <= parms.end)
-        self.showreg = parms.showpast or (self.start > parms.now)
 
             
     def __repr__(self):
@@ -98,3 +85,19 @@ def tocome(what):
 def output(what, outfile):
     outfile.write('%s\n' % what)
 
+def getinfo(curs, table, post_list):
+    venue_numbers = set()
+    posts = {}
+    # Get all the event information from the database
+    stmt = "SELECT post_id, meta_key, meta_value FROM %s WHERE post_id IN (%s)" % (table,post_list)
+    curs.execute(stmt)
+    for (post_id, meta_key, meta_value) in curs.fetchall():
+        if post_id not in posts:
+            posts[post_id] = {'post_id':post_id}
+        posts[post_id][meta_key] = meta_value.strip()
+        if meta_key == '_EventVenueID':
+            venue_numbers.add(meta_value)
+        
+    return (posts, venue_numbers)  
+
+     

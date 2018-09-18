@@ -5,6 +5,7 @@
     a complete listing of all contests in the District. 
 """
 
+import events
 import dbconn, tmutil, sys, os
 from datetime import datetime
 import re
@@ -12,21 +13,6 @@ import tmglobals
 globals = tmglobals.tmglobals()
 
 
-
-def getinfo(curs, table, post_list):
-    venue_numbers = set()
-    posts = {}
-    # Get all the event information from the database
-    stmt = "SELECT post_id, meta_key, meta_value FROM %s WHERE post_id IN (%s)" % (table,post_list)
-    curs.execute(stmt)
-    for (post_id, meta_key, meta_value) in curs.fetchall():
-        if post_id not in posts:
-            posts[post_id] = {'post_id':post_id}
-        posts[post_id][meta_key] = meta_value.strip()
-        if meta_key == '_EventVenueID':
-            venue_numbers.add(meta_value)
-        
-    return (posts, venue_numbers)  
         
 class Division:
     def __init__(self, name):
@@ -39,46 +25,7 @@ class Division:
     def arealist(self):
         return sorted(self.areas)
         
-class Event:
-    ptemplate = '%Y-%m-%d %H:%M:%S'
-    
-    def __init__(self, contents, area, venues, parms):
-        for item in contents:
-            ours = item.replace("_","")
-            self.__dict__[ours] = contents[item]
-        if '_EventVenueID' in contents:
-            v = int(self.EventVenueID)
-            for item in venues[v]:
-                ours = item.replace("_","")
-                self.__dict__[ours] = venues[v][item]
-        self.area = area
-        self.start = datetime.strptime(self.EventStartDate, self.ptemplate)
-        self.end = datetime.strptime(self.EventEndDate, self.ptemplate)
-        self.include = (self.start >= parms.start) and (self.end <= parms.end)
-        self.showreg = parms.showpast or (self.start > parms.now)
 
-            
-    def __repr__(self):
-        if len(self.area) == 1:
-            self.name = '<b>Division %s Contest</b>' % self.area
-        else:
-            self.name = '<b>Area %s Contest</b>' % self.area
-        self.date = self.start.strftime('%B %d').replace(' 0',' ')
-        self.time = self.start.strftime(' %I:%M') + '-' + self.end.strftime(' %I:%M %p')
-        self.time = self.time.replace(' 0', ' ').replace(' ','').lower()
-        self.addr = '<td><b>%(VenueName)s</b><br>%(VenueAddress)s<br>%(VenueCity)s, %(VenueState)s %(VenueZip)s</td>' % self.__dict__
-        if self.showreg:
-            self.register = '<br><a href="%(EventURL)s">Register</a>' % self.__dict__
-        else:
-            self.register = ""
-        ans = """<tr><td>%(name)s%(register)s</td><td><b>%(date)s</b><br>%(time)s%(addr)s</tr>""" % self.__dict__
-        return ans
-
-def tocome(what):
-    return '<tr><td>%s</td><td>TBA</td><td>&nbsp;</td>' % what        
-    
-def output(what, outfile):
-    outfile.write('%s\n' % what)
 
 if __name__ == "__main__":
  
@@ -162,12 +109,12 @@ if __name__ == "__main__":
     
             
     # Now, get all the event information from the database
-    (posts, venue_numbers) = getinfo(curs, prefix+'postmeta', nums)
+    (posts, venue_numbers)  = events.getinfo(curs, prefix+'postmeta', nums)
     # Everything in the postmeta table is a string, including venue_numbers
     venuelist = ','.join(venue_numbers)
     
     # And now, get the venue information.  
-    venues = getinfo(curs, prefix+'postmeta', venuelist)[0]
+    venues  = events.getinfo(curs, prefix+'postmeta', venuelist)[0]
     
     
     # Patch in the actual name of the venue as VenueName
@@ -183,7 +130,7 @@ if __name__ == "__main__":
         m = re.match(title_pattern, post_titles[id])
         if m:
             for area in m.group(2).replace('/',' ').split():
-                this = Event(p, area, venues, parms)
+                this = events.Contest(p, area, venues, parms)
                 if this.include:
                     events[area] = this
                     if not events[area].EventURL:
@@ -206,9 +153,9 @@ if __name__ == "__main__":
         outfile.write('<tr><td colspan="3" class="divhead">Division %s</td></tr>\n' % div)
         outfile.write('<tr><td><b>Area/Division</b></td><td><b>When</b></td><td><b>Where</b></td></tr>\n')
         if div in events:
-            output(events[div], outfile)
+            events.output(events[div], outfile)
         else:
-            output(tocome('<b>Division %s</b>' % div), outfile)
+            events.output(events.tocome('<b>Division %s</b>' % div), outfile)
         pending = None
         for a in d.arealist():
             if a in events:
@@ -216,17 +163,17 @@ if __name__ == "__main__":
                     if pending.EventURL == events[a].EventURL:
                         pending.area += '/' + a
                     else:
-                        output(pending, outfile)
+                        events.output(pending, outfile)
                         pending = events[a]
                 else:
                     pending = events[a]
             else:
                 if pending:
-                    output(pending, outfile)
+                    events.output(pending, outfile)
                     pending = None
-                output(tocome('Area %s' % a), outfile)
+                events.output(events.tocome('Area %s' % a), outfile)
         if pending:
-            output(pending, outfile)
+            events.output(pending, outfile)
     
     outfile.write("""</tbody>
     </table>\n""")

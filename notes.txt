@@ -8,3 +8,51 @@ context managers (e.g. with open(filename) as f: do stuff;)
 -'globals' is a Python keyword. All usages of 'globals' should be replaced with 'globals_'.
 The trailing underscore is a Python convention for re-using a reserved keyword but not 
 overloading it.
+
+-Question: In maketrainingpage (and probably other files as well), there is a section where
+attributes of parms (an instance of tmparms) are set via the dot syntax, but these attributes
+are not defined anywhere in tmparms. Are these attributes just set ad-hoc? For example,
+parms.now = xxx; parms.start = xxx; parms.end = xxx;
+
+
+-In general, it would be nice to replace all string formatting with f-strings for readability
+
+
+Where does the website reside?
+This website is hosted by dreamhost (VPS). Probably Cenos. Do not have root access.
+In the dropbox package, all you need to deal with dreamhost is there.
+
+1G storage. Shell account but no root access.
+
+OpenSSL
+
+Every page is a wordpress page. We use a lot of Plugins. Most stuff is stock wordpress.
+Everything is a page. 
+
+Feed them social. Runs every 15 minutes
+
+jetpack
+
+metaslide
+
+events calender -- what I amn going to be dealing with
+
+WP Super Cachhe -- not using
+
+Divi is a theme on top of wordpress.
+
+
+TWO PLUGNS ARE CRITICAL
+IncludeME -- lets you include a file with HTML or PHP
+does not interpret shortcode in external files
+
+InsertPHP -- lets you add PHP from an external file
+
+
+
+tmparms will always promote yml values as if they were arguments passed to the script. 
+
+
+
+
+
